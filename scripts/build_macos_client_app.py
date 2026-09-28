@@ -74,7 +74,11 @@ def copy_license_notices(node_bin_src: str, licenses_dir: str) -> None:
         None,
     )
     if python_license is None:
-        raise FileNotFoundError("Python runtime LICENSE not found")
+        if sys.version_info[:2] != (3, 14):
+            raise FileNotFoundError("Python runtime LICENSE not found for this version")
+        python_license = Path(PROJECT_ROOT) / "third_party" / "Python-3.14-LICENSE"
+        if not python_license.is_file():
+            raise FileNotFoundError("Python 3.14 LICENSE fallback is missing")
     shutil.copy2(python_license, destination / "Python-LICENSE")
 
     for distribution in metadata.distributions():

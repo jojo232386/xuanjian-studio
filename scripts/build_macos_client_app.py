@@ -69,8 +69,8 @@ def copy_license_notices(node_bin_src: str, licenses_dir: str) -> None:
     shutil.copy2(node_license, destination / "Node-LICENSE")
 
     python_license = next(
-        (parent / "LICENSE" for parent in (Path(sys.base_prefix), *Path(sys.base_prefix).parents)
-         if (parent / "LICENSE").is_file()),
+        (parent / name for parent in (Path(sys.base_prefix), *Path(sys.base_prefix).parents)
+         for name in ("LICENSE", "LICENSE.txt") if (parent / name).is_file()),
         None,
     )
     if python_license is None:
@@ -120,9 +120,8 @@ def assemble_app():
     print("编译打包 Python 后端 arm64 独立运行体...")
     env_pyinstaller = os.environ.copy()
     env_pyinstaller["PYTHONPATH"] = PROJECT_ROOT
-    pyinstaller_bin = os.path.join(PROJECT_ROOT, ".venv", "bin", "pyinstaller")
     pyinstaller_cmd = [
-        pyinstaller_bin,
+        sys.executable, "-m", "PyInstaller",
         "--onedir",
         "--noconfirm",
         "--name", "xuanjian_server",

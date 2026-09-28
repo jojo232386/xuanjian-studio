@@ -48,7 +48,9 @@ jobs:
         run: |
           test "$(uname -m)" = arm64
           XUANJIAN_NODE_BIN="$(command -v node)" python scripts/build_macos_client_app.py
-          python -m pytest -q -p no:cacheprovider --ignore=tests/test_macos_client_app_e2e.py
+          python -m pytest -q -p no:cacheprovider tests/test_http_resilience.py tests/test_server_records_api.py tests/test_server_static.py
+          python -m pytest -q -p no:cacheprovider --ignore=tests/test_macos_client_app_e2e.py --ignore=tests/test_http_resilience.py --ignore=tests/test_server_records_api.py --ignore=tests/test_server_static.py
+          python -m pytest -q -p no:cacheprovider tests/test_http_resilience.py tests/test_server_records_api.py tests/test_server_static.py
           python -m pytest -q -p no:cacheprovider tests/test_macos_client_app_e2e.py
           python -m pytest -q -p no:cacheprovider tests/test_http_resilience.py tests/test_server_records_api.py tests/test_server_static.py
       - name: Verify extracted candidate

@@ -25,6 +25,7 @@ import subprocess
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SERVER_PY = os.path.join(PROJECT_ROOT, "backend", "server.py")
+LOCAL_OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 
 
 def find_free_port() -> int:
@@ -127,22 +128,23 @@ class TestServerStaticSecurity(unittest.TestCase):
         )
 
         ready = False
-        for _ in range(30):
-            time.sleep(0.15)
+        deadline = time.monotonic() + 15.0
+        while time.monotonic() < deadline and cls.server_proc.poll() is None:
             try:
-                with urllib.request.urlopen(f"{cls.base_url}/api/health", timeout=1.0) as resp:
+                with LOCAL_OPENER.open(f"{cls.base_url}/api/health", timeout=1.0) as resp:
                     if resp.status == 200:
                         ready = True
                         break
             except Exception:
-                pass
+                time.sleep(0.15)
         if not ready:
+            exit_code = cls.server_proc.poll()
             cls.server_proc.terminate()
-            raise RuntimeError(f"随机端口静态安全测试服务启动失败: {cls.base_url}")
+            raise RuntimeError(f"随机端口静态安全测试服务启动失败: {cls.base_url}; exit={exit_code}")
 
         if cls.server_proc.poll() is not None:
             raise RuntimeError("静态安全测试子进程意外退出")
-        with urllib.request.urlopen(f"{cls.base_url}/api/system/info", timeout=2.0) as resp:
+        with LOCAL_OPENER.open(f"{cls.base_url}/api/system/info", timeout=2.0) as resp:
             import json
             info = json.load(resp)
             if info.get("pid") != cls.server_proc.pid:
@@ -176,7 +178,7 @@ class TestServerStaticSecurity(unittest.TestCase):
             }
         )
         try:
-            with urllib.request.urlopen(req) as resp:
+            with LOCAL_OPENER.open(req) as resp:
                 return resp.status, resp.read().decode("utf-8", errors="ignore")
         except urllib.error.HTTPError as e:
             return e.code, e.read().decode("utf-8", errors="ignore")

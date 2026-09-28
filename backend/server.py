@@ -14,7 +14,7 @@ import json
 import datetime
 import base64
 import urllib.parse
-from http.server import HTTPServer, BaseHTTPRequestHandler
+from http.server import HTTPServer, ThreadingHTTPServer, BaseHTTPRequestHandler
 from typing import Dict, Any, Optional
 
 # 将上级目录加入 sys.path
@@ -906,7 +906,7 @@ def run_server(port: Optional[int] = None):
     global _CURRENT_SERVER
     actual_port = port or PORT
     server_address = (HOST, actual_port)
-    httpd = HTTPServer(server_address, XuanJianAPIHandler)
+    httpd = ThreadingHTTPServer(server_address, XuanJianAPIHandler)
     _CURRENT_SERVER = httpd
     print(f"「玄鉴·书房」后端服务已启动: http://{HOST}:{actual_port}")
     try:

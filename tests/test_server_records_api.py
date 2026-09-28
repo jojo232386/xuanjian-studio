@@ -269,17 +269,18 @@ class TestServerRecordsAPI(unittest.TestCase):
         try:
             # 等待启动
             ready2 = False
-            for _ in range(30):
-                time.sleep(0.1)
+            health_opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+            deadline = time.monotonic() + 15.0
+            while time.monotonic() < deadline and proc.poll() is None:
                 try:
-                    with urllib.request.urlopen(f"{base_url2}/api/health", timeout=1.0) as resp:
+                    with health_opener.open(f"{base_url2}/api/health", timeout=1.0) as resp:
                         if resp.status == 200:
                             ready2 = True
                             break
                 except Exception:
-                    pass
+                    time.sleep(0.15)
 
-            self.assertTrue(ready2, f"临时测试服务未能启动: {base_url2}")
+            self.assertTrue(ready2, f"临时测试服务未能启动: {base_url2}; exit={proc.poll()}")
             self.assertIsNone(proc.poll(), "临时测试子进程已意外退出")
             req_info = urllib.request.Request(f"{base_url2}/api/system/info")
             with urllib.request.urlopen(req_info, timeout=2.0) as resp:

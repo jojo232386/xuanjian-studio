@@ -19,6 +19,9 @@ import shutil
 import subprocess
 import json
 import stat
+import platform
+import importlib.metadata as metadata
+from pathlib import Path
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DIST_DIR = os.path.join(PROJECT_ROOT, "dist")
@@ -50,6 +53,50 @@ def find_valid_node_bin():
             if "arm64" in out:
                 return p
     raise FileNotFoundError("未找到可用的 Node.js arm64 独立二进制")
+
+
+def copy_license_notices(node_bin_src: str, licenses_dir: str) -> None:
+    """Ship the notices for the runtimes and packages bundled in the app."""
+    destination = Path(licenses_dir)
+    shutil.copy2(Path(PROJECT_ROOT) / "LICENSE", destination / "XuanJian-LICENSE")
+
+    node_license = Path(node_bin_src).parent.parent / "LICENSE"
+    if not node_license.is_file():
+        raise FileNotFoundError(
+            f"Node LICENSE not found beside {node_bin_src}; set XUANJIAN_NODE_BIN "
+            "to bin/node from an official Node.js distribution"
+        )
+    shutil.copy2(node_license, destination / "Node-LICENSE")
+
+    python_license = next(
+        (parent / "LICENSE" for parent in (Path(sys.base_prefix), *Path(sys.base_prefix).parents)
+         if (parent / "LICENSE").is_file()),
+        None,
+    )
+    if python_license is None:
+        raise FileNotFoundError("Python runtime LICENSE not found")
+    shutil.copy2(python_license, destination / "Python-LICENSE")
+
+    for distribution in metadata.distributions():
+        name = distribution.metadata.get("Name", "unknown").replace("/", "_")
+        for relative in distribution.files or []:
+            rel = Path(str(relative))
+            if not any(part.lower() == "licenses" for part in rel.parts) and not rel.name.upper().startswith(("LICENSE", "COPYING", "NOTICE")):
+                continue
+            source = Path(distribution.locate_file(relative))
+            if source.is_file() and source.stat().st_size < 2_000_000:
+                target = destination / "python-packages" / name / rel.name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(source, target)
+
+    npm_root = Path(PROJECT_ROOT) / "frontend" / "node_modules"
+    for package in (*npm_root.glob("*/package.json"), *npm_root.glob("@*/*/package.json")):
+        for source in package.parent.iterdir():
+            if source.is_file() and source.name.upper().startswith(("LICENSE", "LICENCE", "COPYING", "NOTICE")):
+                name = str(package.parent.relative_to(npm_root)).replace("/", "__")
+                target = destination / "npm-packages" / name / source.name
+                target.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(source, target)
 
 
 def assemble_app():
@@ -148,11 +195,6 @@ def assemble_app():
     shutil.copy2(node_bin_src, target_node_bin)
     os.chmod(target_node_bin, os.stat(target_node_bin).st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
 
-    # 复制 Node LICENSE
-    node_license_src = os.path.join(os.path.dirname(os.path.dirname(node_bin_src)), "LICENSE")
-    if os.path.isfile(node_license_src):
-        shutil.copy2(node_license_src, os.path.join(RESOURCES_DIR, "node", "LICENSE"))
-
     # 8. 复制 calc_worker.bundle.js 到 Resources/scripts
     target_scripts_dir = os.path.join(RESOURCES_DIR, "scripts")
     os.makedirs(target_scripts_dir, exist_ok=True)
@@ -169,23 +211,24 @@ def assemble_app():
     # 10. 收集第三方许可证说明
     licenses_dir = os.path.join(RESOURCES_DIR, "LICENSES")
     os.makedirs(licenses_dir, exist_ok=True)
+    copy_license_notices(node_bin_src, licenses_dir)
 
-    summary_license = """# 玄鉴·书房 v3.0.1 第三方开源许可声明 (Open Source Licenses)
+    summary_license = f"""# 玄鉴·书房 v3.0.1 第三方开源许可声明 (Open Source Licenses)
 
 本软件随包私有携带与调用的组件及许可证如下：
 
 1. **Python Runtime**
-   - 版本: 3.14.6 (macOS arm64)
+   - 版本: {platform.python_version()} (macOS arm64)
    - 许可: Python Software Foundation License (PSFL)
    - 协议: 开源自由分发
 
 2. **Node.js Standalone Runtime**
-   - 版本: v22.22.3 (macOS arm64 Standalone Executable)
-   - 许可: MIT License
+   - 版本: {subprocess.check_output([node_bin_src, '--version'], text=True).strip()} (macOS arm64)
+   - 许可: Node.js distribution LICENSE, including bundled third-party notices
    - 说明: 随包私有携带，后台按需调用计算 Worker，不修改客户 PATH，不写入系统 /usr/local。
 
 3. **lunar-python (历法与八字计算)**
-   - 版本: v1.4.8
+   - 版本: {metadata.version('lunar_python')}
    - 许可: MIT License
    - 用途: 阴阳历高精度转换、二十四节气与立春时辰秒级交接。
 
@@ -200,8 +243,8 @@ def assemble_app():
    - 用途: 拆补定局与洛书九宫门星神排布。
 
 6. **cryptography (AES-256-GCM 本地加密)**
-   - 版本: v50.0.1
-   - 许可: Apache License 2.0 / BSD 3-Clause License
+   - 版本: {metadata.version('cryptography')}
+   - 许可: Apache License 2.0 OR BSD 3-Clause License
    - 用途: 本地数据导出备份与 WebDAV 快照端到端加密保护。
 """
     with open(os.path.join(licenses_dir, "LICENSE_SUMMARY.md"), "w", encoding="utf-8") as f:

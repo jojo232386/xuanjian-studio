@@ -58,6 +58,24 @@ class TestMacOSClientAppE2E(unittest.TestCase):
         if not os.path.exists(SERVER_BIN):
             subprocess.check_call([sys.executable, os.path.join(PROJECT_ROOT, "scripts", "build_macos_client_app.py")])
 
+    def test_00_bundled_license_notices(self):
+        licenses = os.path.join(APP_PATH, "Contents", "Resources", "LICENSES")
+        required = (
+            "XuanJian-LICENSE",
+            "Node-LICENSE",
+            "Python-LICENSE",
+            "iztro-LICENSE",
+            "bigfishmarquis-qimen-LICENSE",
+            "python-packages/lunar_python/LICENSE",
+            "python-packages/cryptography/LICENSE",
+            "npm-packages/react/LICENSE",
+            "npm-packages/lucide-react/LICENSE",
+        )
+        for path in required:
+            self.assertTrue(os.path.isfile(os.path.join(licenses, path)), path)
+        with open(os.path.join(licenses, "LICENSE_SUMMARY.md"), encoding="utf-8") as stream:
+            self.assertIn("Node.js distribution LICENSE", stream.read())
+
     def test_01_cold_machine_simulation_and_persistence(self):
         """
         1. Cold Machine Simulation:

@@ -1,0 +1,311 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* frontend/src/index.css - 宋式清雅与现代阅读界面 (宣纸 / 墨夜 / 跟随系统) */
+
+@layer base {
+  :root {
+    --xuanzhi: #F5F1E8;
+    --xuanzhi-light: #FAF7F0;
+    --xuanzhi-card: #FFFFFF;
+    --ink: #222622;
+    --ink-muted: #5C625B;
+    --ink-subtle: #646D63;
+    --border: #DCD5C6;
+    --border-light: #EDE8DE;
+    --daiqing: #325350;
+    --accent-ink: #325350;
+    --daiqing-light: #E9EFEB;
+    --daiqing-dark: #233B39;
+    --zhusha: #A63B32;
+    --zhusha-light: #FBECEB;
+    --gold: #A17C38;
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --shadow-subtle: 0 2px 8px rgba(34, 38, 34, 0.04);
+    --shadow-card: 0 4px 16px rgba(34, 38, 34, 0.06);
+  }
+
+  /* 墨夜主题 (Dark Ink - 徽墨松烟，深沉温润而不刺眼) */
+  :root[data-theme="moye"],
+  [data-theme="moye"] {
+    --xuanzhi: #151816;
+    --xuanzhi-light: #1D221F;
+    --xuanzhi-card: #242A26;
+    --ink: #EDE8DF;
+    --ink-muted: #A5ACA3;
+    --ink-subtle: #9CA79C;
+    --border: #38413B;
+    --border-light: #2A312C;
+    --daiqing: #4C7B76;
+    --accent-ink: #9CC4BC;
+    --daiqing-light: #1B2927;
+    --daiqing-dark: #639892;
+    --zhusha: #C85448;
+    --zhusha-light: #341D1A;
+    --gold: #C29F5A;
+    --shadow-subtle: 0 2px 8px rgba(0, 0, 0, 0.35);
+    --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.45);
+  }
+
+  /* 跟随系统：当系统处于深色模式时匹配墨夜 */
+  @media (prefers-color-scheme: dark) {
+    :root[data-theme="system"],
+    [data-theme="system"] {
+      --xuanzhi: #151816;
+      --xuanzhi-light: #1D221F;
+      --xuanzhi-card: #242A26;
+      --ink: #EDE8DF;
+      --ink-muted: #A5ACA3;
+      --ink-subtle: #9CA79C;
+      --border: #38413B;
+      --border-light: #2A312C;
+      --daiqing: #4C7B76;
+    --accent-ink: #9CC4BC;
+      --daiqing-light: #1B2927;
+      --daiqing-dark: #639892;
+      --zhusha: #C85448;
+      --zhusha-light: #341D1A;
+      --gold: #C29F5A;
+      --shadow-subtle: 0 2px 8px rgba(0, 0, 0, 0.35);
+      --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.45);
+    }
+  }
+
+  /* 字体比例支持 */
+  :root[data-font-size="large"] {
+    font-size: 18px;
+  }
+
+  /* 减少动画无障碍支持 */
+  @media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer base {
+  *, ::before, ::after {
+    box-sizing: border-box;
+  }
+}
+
+body {
+  background-color: var(--xuanzhi);
+  color: var(--ink);
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.6;
+  min-height: 100vh;
+  transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+/* 宋体气质标题字体 */
+.font-song {
+  font-family: "Songti SC", "Noto Serif SC", "SimSun", "STSong", "source-han-serif-sc", Georgia, serif;
+  letter-spacing: 0.05em;
+}
+
+/* 文房细线与题签印章装饰 */
+.seal-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--zhusha);
+  color: #FFFFFF;
+  font-family: "Songti SC", "SimSun", serif;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 2px;
+  box-shadow: 0 1px 2px rgba(166, 59, 50, 0.3);
+  letter-spacing: 0.1em;
+}
+
+.seal-tag-muted {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--daiqing-light);
+  color: var(--daiqing);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 2px;
+  border: 1px solid var(--border);
+}
+
+.main-content-layout {
+  width: 100%;
+}
+
+@media (min-width: 1024px) {
+  .main-content-layout {
+    margin-left: 16rem !important;
+    width: calc(100% - 16rem) !important;
+  }
+}
+
+/* 宣纸卡片容器 */
+.card-xuan {
+  background-color: var(--xuanzhi-light);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-subtle);
+  color: var(--ink);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+
+/* 按钮规范 */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: var(--daiqing);
+  color: #FFFFFF;
+  padding: 9px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 40px;
+}
+
+.btn-primary:hover {
+  background-color: var(--daiqing-dark);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: var(--xuanzhi-card);
+  color: var(--ink);
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 40px;
+}
+
+.btn-secondary:hover {
+  background-color: var(--border-light);
+}
+
+.btn-zhusha {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: var(--zhusha);
+  color: #FFFFFF;
+  padding: 9px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 40px;
+}
+
+.btn-zhusha:hover {
+  filter: brightness(1.1);
+}
+
+/* 输入框与选择器规范 */
+.input-xuan {
+  width: 100%;
+  background-color: var(--xuanzhi-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 14px;
+  color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.input-xuan:focus {
+  border-color: var(--daiqing);
+  box-shadow: 0 0 0 2px rgba(50, 83, 80, 0.25);
+}
+
+select.input-xuan option {
+  background-color: var(--xuanzhi-card);
+  color: var(--ink);
+}
+
+/* 滚动条优化 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--xuanzhi);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-subtle);
+}
+
+/* 焦点无障碍支持 */
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid var(--daiqing);
+  outline-offset: 2px;
+}
+
+/* Product Design pass: readable hierarchy and predictable interactive affordances. */
+.nav-item { display:flex; align-items:center; gap:14px; width:100%; min-height:66px; padding:12px 16px; border-radius:10px; text-align:left; color:var(--ink-muted); transition:background .15s,color .15s; }
+.nav-item:hover { background:var(--border-light); color:var(--ink); }
+.nav-item.is-active { background:var(--daiqing); color:white; }
+.utility-button { display:flex; align-items:center; gap:10px; min-height:42px; width:100%; padding:8px 12px; border-radius:8px; font-size:13px; color:var(--ink-muted); text-align:left; }
+.utility-button:hover { background:var(--border-light); color:var(--ink); }
+.nav-preferences > summary { list-style:none; }
+.nav-preferences > summary::-webkit-details-marker { display:none; }
+.studio-welcome { padding:clamp(28px,4vw,48px); background:var(--xuanzhi-light); border:1px solid var(--border); border-left:4px solid var(--daiqing); border-radius:12px; }
+.studio-shortcut { display:flex; align-items:center; gap:18px; padding:24px; text-align:left; background:var(--xuanzhi-light); border:1px solid var(--border); border-radius:12px; color:var(--accent-ink); transition:border-color .15s, background .15s; }
+.studio-shortcut:hover { border-color:var(--daiqing); background:var(--daiqing-light); }
+.text-link { display:inline-flex; align-items:center; gap:8px; font-size:14px; font-weight:500; color:var(--accent-ink); }
+.text-link:hover { text-decoration:underline; text-underline-offset:4px; }
+.flow-steps { display:flex; align-items:center; gap:24px; padding:2px 0; color:var(--ink-muted); font-size:13px; }
+.flow-steps li { display:flex; align-items:center; gap:8px; }
+.flow-steps li > span { width:24px; height:24px; display:flex; align-items:center; justify-content:center; border-radius:50%; border:1px solid var(--border); }
+.flow-steps li.current { color:var(--accent-ink); font-weight:600; }
+.flow-steps li.current > span { background:var(--daiqing); color:white; border-color:var(--daiqing); }
+.question-input { font-size:16px; line-height:1.8; padding:16px; }
+.question-example { padding:7px 12px; border:1px solid var(--border); border-radius:7px; font-size:13px; color:var(--ink-muted); min-height:36px; }
+.question-example:hover { border-color:var(--daiqing); color:var(--accent-ink); }
+.reading-card { border-top:3px solid var(--daiqing); }
+.divination-flow p { overflow-wrap:anywhere; }
+.btn-primary, .btn-secondary, .btn-zhusha { min-height:44px; border-radius:8px; }
+button:disabled { opacity:.48; cursor:not-allowed; }
+summary:focus-visible, a:focus-visible { outline:2px solid var(--daiqing); outline-offset:4px; border-radius:3px; }
+summary { line-height:1.7; }
+@media(max-width:639px) {
+  .flow-steps { gap:12px; font-size:12px; }
+  .flow-steps li { gap:6px; }
+  .flow-steps li > span { width:22px; height:22px; }
+  .studio-shortcut { padding:20px; }
+  .divination-flow > header select { max-width:150px; }
+}
+
+.reading-card:focus-visible { outline:2px solid var(--daiqing); outline-offset:3px; }

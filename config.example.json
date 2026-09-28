@@ -1,0 +1,27 @@
+{
+  "server": {
+    "host": "127.0.0.1",
+    "port": 8788
+  },
+  "database": {
+    "path": "data/xuanjian.db"
+  },
+  "ai": {
+    "provider_type": "offline",
+    "base_url": "https://api.openai.com/v1",
+    "model_name": "gpt-4o-mini",
+    "api_key": "YOUR_API_KEY_HERE",
+    "temperature": 0.3,
+    "max_tokens": 1200,
+    "daily_calls_limit": 50,
+    "monthly_tokens_limit": 100000
+  },
+  "sync": {
+    "enabled": false,
+    "server_url": "https://dav.jianguoyun.com/dav/",
+    "username": "YOUR_WEBDAV_USERNAME",
+    "password": "YOUR_WEBDAV_APPLICATION_PASSWORD",
+    "remote_path": "/xuanjian/backup.enc",
+    "encryption_passphrase": "YOUR_BACKUP_ENCRYPTION_PASSPHRASE"
+  }
+}

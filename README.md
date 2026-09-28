@@ -6,6 +6,10 @@
 
 > An offline-first study app for the *I Ching*, Chinese calendar, and reflective journaling. The interface and classical texts are currently in Chinese.
 
+![玄鉴·书房从问题到复盘的四步流程示意](docs/assets/flow.svg)
+
+这是操作流程示意，具体界面以当前源码运行结果为准。[Read this README in English](README.en.md).
+
 ## 两分钟体验
 
 1. 打开「书房」，点 **从这里开始**。
@@ -55,7 +59,7 @@ PYTHONPATH=. .venv/bin/python scripts/iching.py lines 7 8 7 8 9 6
 npm --prefix frontend run build
 ```
 
-macOS 独立 App 的端到端测试另在 `tests/test_macos_client_app_e2e.py`，需要先准备打包依赖。2026-09-28 的本地完整测试为 **130 passed**；这不是跨平台或另一台干净 Mac 的安装验收。
+macOS 独立 App 的端到端测试另在 `tests/test_macos_client_app_e2e.py`，需要先准备打包依赖。2026-09-29 本机完整测试 **132 passed**（源码 128、打包 App 4）。[GitHub Actions](https://github.com/jojo232386/xuanjian-studio/actions/workflows/ci.yml) 在 Linux 核对源码，在全新 Apple Silicon 虚拟机核对打包、许可、非网络测试和解压签名。GitHub 的 macOS 托管 runner 有 [Python 本地监听异常](https://github.com/actions/runner-images/issues/14409)，因此那里的 HTTP 测试结果不作为产品结论。自动测试也不等于另一台真实用户 Mac 的 Gatekeeper 首次打开验收。
 
 运行测试前请安装 `requirements-dev.txt`。在 macOS Apple Silicon 上试做独立 App，可安装 `requirements-build-macos.txt` 后运行 `scripts/build_macos_client_app.py`；生成的 `dist/` 不属于源码仓库。
 

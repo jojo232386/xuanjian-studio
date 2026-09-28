@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="342" viewBox="0 0 1200 342" role="img" aria-labelledby="title description">
+  <title id="title">玄鉴·书房：从问题到复盘</title>
+  <desc id="description">四步流程：写下问题、模拟投币、阅读解读、保存手记。</desc>
+  <rect width="1200" height="342" rx="24" fill="#f5f1e8"/>
+  <path d="M24 24h1152v294H24z" rx="16" fill="none" stroke="#d7cdbd"/>
+  <rect x="44" y="38" width="6" height="55" rx="3" fill="#365b58"/>
+  <text x="70" y="67" fill="#253d3a" font-size="30" font-family="serif">玄鉴 · 书房</text>
+  <text x="70" y="91" fill="#697470" font-size="15" font-family="sans-serif">XuanJian Studio · a quiet path from question to reflection</text>
+  <g font-family="sans-serif">
+    <rect x="46" y="126" width="249" height="168" rx="15" fill="#fffdf8" stroke="#d7cdbd"/>
+    <circle cx="78" cy="159" r="17" fill="#365b58"/>
+    <text x="78" y="165" fill="white" font-size="16" text-anchor="middle">1</text>
+    <text x="62" y="209" fill="#253d3a" font-size="24">写下问题</text>
+    <text x="62" y="245" fill="#697470" font-size="16">Start with one question</text>
+
+    <rect x="332" y="126" width="249" height="168" rx="15" fill="#fffdf8" stroke="#d7cdbd"/>
+    <circle cx="364" cy="159" r="17" fill="#365b58"/>
+    <text x="364" y="165" fill="white" font-size="16" text-anchor="middle">2</text>
+    <text x="348" y="209" fill="#253d3a" font-size="24">模拟投币</text>
+    <text x="348" y="245" fill="#697470" font-size="16">Generate a hexagram</text>
+
+    <rect x="618" y="126" width="249" height="168" rx="15" fill="#fffdf8" stroke="#d7cdbd"/>
+    <circle cx="650" cy="159" r="17" fill="#365b58"/>
+    <text x="650" y="165" fill="white" font-size="16" text-anchor="middle">3</text>
+    <text x="634" y="209" fill="#253d3a" font-size="24">阅读解读</text>
+    <text x="634" y="245" fill="#697470" font-size="16">Read the source and notes</text>
+
+    <rect x="904" y="126" width="249" height="168" rx="15" fill="#fffdf8" stroke="#d7cdbd"/>
+    <circle cx="936" cy="159" r="17" fill="#365b58"/>
+    <text x="936" y="165" fill="white" font-size="16" text-anchor="middle">4</text>
+    <text x="920" y="209" fill="#253d3a" font-size="24">保存手记</text>
+    <text x="920" y="245" fill="#697470" font-size="16">Revisit what happened</text>
+  </g>
+  <g fill="none" stroke="#aa6a57" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M303 210h20m-7-7 7 7-7 7"/>
+    <path d="M589 210h20m-7-7 7 7-7 7"/>
+    <path d="M875 210h20m-7-7 7 7-7 7"/>
+  </g>
+  <text x="1150" y="322" fill="#9a6b5d" font-size="13" text-anchor="end" font-family="sans-serif">本地优先 · 默认不自动保存 · 不是现实预测</text>
+</svg>

@@ -15,6 +15,7 @@ import subprocess
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 SERVER_PY = os.path.join(PROJECT_ROOT, "backend", "server.py")
+LOCAL_OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))
 
 
 def find_free_port() -> int:
@@ -84,25 +85,33 @@ class TestServerRecordsAPI(unittest.TestCase):
 
         # 等待随机端口隔离服务就绪
         ready = False
-        for _ in range(30):
-            time.sleep(0.15)
+        last_error = ""
+        deadline = time.monotonic() + 15.0
+        while time.monotonic() < deadline and cls.server_proc.poll() is None:
             try:
                 req = urllib.request.Request(f"{cls.base_url}/api/health")
-                with urllib.request.urlopen(req, timeout=1.0) as resp:
+                with LOCAL_OPENER.open(req, timeout=1.0) as resp:
                     if resp.status == 200:
                         ready = True
                         break
-            except Exception:
-                pass
+            except Exception as exc:
+                last_error = str(exc)
+                time.sleep(0.15)
         if not ready:
-            cls.server_proc.terminate()
-            raise RuntimeError(f"随机端口测试服务启动失败: {cls.base_url}")
+            exit_code = cls.server_proc.poll()
+            if exit_code is None:
+                cls.server_proc.terminate()
+            _, stderr = cls.server_proc.communicate(timeout=5)
+            raise RuntimeError(
+                f"随机端口测试服务启动失败: {cls.base_url}; exit={exit_code}; "
+                f"last_error={last_error}; stderr={stderr[-500:]!r}"
+            )
 
         # 严格验证实例身份与沙盒目录匹配
         if cls.server_proc.poll() is not None:
             raise RuntimeError("测试子进程意外退出")
         req_info = urllib.request.Request(f"{cls.base_url}/api/system/info")
-        with urllib.request.urlopen(req_info, timeout=2.0) as resp:
+        with LOCAL_OPENER.open(req_info, timeout=2.0) as resp:
             info = json.load(resp)
             if info.get("pid") != cls.server_proc.pid:
                 cls.server_proc.terminate()
@@ -129,7 +138,7 @@ class TestServerRecordsAPI(unittest.TestCase):
         # 发送清空请求前严格前置检查：确认子进程存活且实例身份匹配沙盒
         self.assertIsNone(self.server_proc.poll(), "测试子进程已异常退出，禁止发送清空请求")
         req_info = urllib.request.Request(f"{self.base_url}/api/system/info")
-        with urllib.request.urlopen(req_info, timeout=2.0) as resp:
+        with LOCAL_OPENER.open(req_info, timeout=2.0) as resp:
             info = json.load(resp)
             self.assertEqual(info.get("pid"), self.server_proc.pid, "端口响应进程 PID 不匹配，拒绝发送清空请求")
             self.assertEqual(os.path.realpath(info.get("data_dir", "")), os.path.realpath(self.temp_dir), "服务数据目录脱离测试沙盒，拒绝发送清空请求")
@@ -142,7 +151,7 @@ class TestServerRecordsAPI(unittest.TestCase):
             headers={"Content-Type": "application/json", "Host": f"127.0.0.1:{self.port}"},
             method="POST"
         )
-        urllib.request.urlopen(req)
+        LOCAL_OPENER.open(req)
 
     def test_post_get_and_delete_record(self):
         """测试通过 HTTP API 新建、查询、更新与删除记录"""
@@ -162,21 +171,21 @@ class TestServerRecordsAPI(unittest.TestCase):
             headers={"Content-Type": "application/json", "Host": f"127.0.0.1:{self.port}"},
             method="POST"
         )
-        with urllib.request.urlopen(req) as resp:
+        with LOCAL_OPENER.open(req) as resp:
             self.assertEqual(resp.status, 201)
             created = json.loads(resp.read().decode("utf-8"))
             rec_id = created["id"]
             self.assertEqual(created["title"], "API测试卦例：既济之贲")
 
         # 2. GET /api/records/<id>
-        with urllib.request.urlopen(f"{self.base_url}/api/records/{rec_id}") as resp:
+        with LOCAL_OPENER.open(f"{self.base_url}/api/records/{rec_id}") as resp:
             self.assertEqual(resp.status, 200)
             fetched = json.loads(resp.read().decode("utf-8"))
             self.assertEqual(fetched["id"], rec_id)
 
         # 3. GET /api/records (带中文关键词搜索)
         query_url = f"{self.base_url}/api/records?query=" + urllib.parse.quote("既济")
-        with urllib.request.urlopen(query_url) as resp:
+        with LOCAL_OPENER.open(query_url) as resp:
             list_res = json.loads(resp.read().decode("utf-8"))
             self.assertGreaterEqual(list_res["total"], 1)
             self.assertEqual(list_res["records"][0]["id"], rec_id)
@@ -195,7 +204,7 @@ class TestServerRecordsAPI(unittest.TestCase):
             headers={"Content-Type": "application/json", "Host": f"127.0.0.1:{self.port}"},
             method="PUT"
         )
-        with urllib.request.urlopen(put_req) as resp:
+        with LOCAL_OPENER.open(put_req) as resp:
             self.assertEqual(resp.status, 200)
             updated = json.loads(resp.read().decode("utf-8"))
             self.assertEqual(updated["review_data"]["actual_outcome"], "实测接口非常稳定")
@@ -206,12 +215,12 @@ class TestServerRecordsAPI(unittest.TestCase):
             headers={"Host": f"127.0.0.1:{self.port}"},
             method="DELETE"
         )
-        with urllib.request.urlopen(del_req) as resp:
+        with LOCAL_OPENER.open(del_req) as resp:
             self.assertEqual(resp.status, 200)
 
         # 再次获取应该 404
         with self.assertRaises(urllib.error.HTTPError) as ctx:
-            urllib.request.urlopen(f"{self.base_url}/api/records/{rec_id}")
+            LOCAL_OPENER.open(f"{self.base_url}/api/records/{rec_id}")
         self.assertEqual(ctx.exception.code, 404)
 
     def test_dns_rebinding_and_cross_origin_blocked(self):
@@ -229,7 +238,7 @@ class TestServerRecordsAPI(unittest.TestCase):
             method="POST"
         )
         with self.assertRaises(urllib.error.HTTPError) as ctx:
-            urllib.request.urlopen(req_bad_host)
+            LOCAL_OPENER.open(req_bad_host)
         self.assertEqual(ctx.exception.code, 403)
 
         # 2. 跨站 Origin 请求 (例如来自 https://malicious-site.org)
@@ -244,7 +253,7 @@ class TestServerRecordsAPI(unittest.TestCase):
             method="POST"
         )
         with self.assertRaises(urllib.error.HTTPError) as ctx:
-            urllib.request.urlopen(req_bad_origin)
+            LOCAL_OPENER.open(req_bad_origin)
         self.assertEqual(ctx.exception.code, 403)
 
     def test_clear_records_safeguard_forbidden_without_env_flag(self):
@@ -269,11 +278,10 @@ class TestServerRecordsAPI(unittest.TestCase):
         try:
             # 等待启动
             ready2 = False
-            health_opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
             deadline = time.monotonic() + 15.0
             while time.monotonic() < deadline and proc.poll() is None:
                 try:
-                    with health_opener.open(f"{base_url2}/api/health", timeout=1.0) as resp:
+                    with LOCAL_OPENER.open(f"{base_url2}/api/health", timeout=1.0) as resp:
                         if resp.status == 200:
                             ready2 = True
                             break
@@ -283,7 +291,7 @@ class TestServerRecordsAPI(unittest.TestCase):
             self.assertTrue(ready2, f"临时测试服务未能启动: {base_url2}; exit={proc.poll()}")
             self.assertIsNone(proc.poll(), "临时测试子进程已意外退出")
             req_info = urllib.request.Request(f"{base_url2}/api/system/info")
-            with urllib.request.urlopen(req_info, timeout=2.0) as resp:
+            with LOCAL_OPENER.open(req_info, timeout=2.0) as resp:
                 info = json.load(resp)
                 self.assertEqual(info.get("pid"), proc.pid, "PID 不匹配")
                 self.assertEqual(os.path.realpath(info.get("data_dir", "")), os.path.realpath(temp_dir2))
@@ -296,7 +304,7 @@ class TestServerRecordsAPI(unittest.TestCase):
                 method="POST"
             )
             with self.assertRaises(urllib.error.HTTPError) as ctx:
-                urllib.request.urlopen(req)
+                LOCAL_OPENER.open(req)
             self.assertEqual(ctx.exception.code, 403)
         finally:
             proc.terminate()

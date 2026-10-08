@@ -1,0 +1,24 @@
+{
+  "verified_at_utc": "2026-10-08",
+  "verification_environment": "isolated local Linux workspace; not an account Codex Cloud task",
+  "repository": "jojo232386/xuanjian-studio",
+  "base_commit": "6ce92d3e83cc5db3c402791b6fe432e474570ae8",
+  "runtime": {
+    "python": "3.14.8",
+    "node": "22.23.3"
+  },
+  "frontend_build": "PASS",
+  "source_tests": {
+    "passed": 128,
+    "failed": 0,
+    "includes": "HTTP and sync contracts"
+  },
+  "not_run": [
+    "tests/test_macos_client_app_e2e.py",
+    "Apple Silicon packaging and signing",
+    "real Mac Gatekeeper first launch"
+  ],
+  "personal_data_or_credentials_uploaded": false,
+  "account_cloud_publish": "PENDING_AUTH",
+  "fresh_task_cloud_verification": "NOTRUN"
+}
